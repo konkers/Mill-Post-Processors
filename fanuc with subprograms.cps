@@ -10,7 +10,7 @@
   FORKID {04622D27-72F0-45d4-85FB-DB346FD1AE22}
 */
 
-description = "GitHub - Generic FANUC with subprograms";
+description = "Github- Generic FANUC with subprograms";
 vendor = "Autodesk, Inc.";
 vendorUrl = "http://www.autodesk.com";
 legal = "Copyright (C) 2012-2013 by Autodesk, Inc.";
