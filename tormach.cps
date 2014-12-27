@@ -42,7 +42,7 @@ properties = {
   showSequenceNumbers: true, // show sequence numbers
   sequenceNumberStart: 10, // first sequence number
   sequenceNumberIncrement: 10, // increment for sequence numbers
-  optionalStop: true, // optional stop
+  optionalStop: false, // optional stop
   separateWordsWithSpace: true, // specifies that the words should be separated with a white space
   useRadius: true, // specifies that arcs should be output using the radius (R word) instead of the I, J, and K words.
   dwellInSeconds: true // specifies the unit for dwelling: true:seconds and false:milliseconds.
