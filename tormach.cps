@@ -36,7 +36,7 @@ allowedCircularPlanes = undefined; // allow any circular motion
 properties = {
   writeMachine: true, // write machine
   writeTools: true, // writes the tools
-  useG28: true, // disable to avoid G28 output
+  useG28: false, // disable to avoid G28 output
   useM6: true, // disable to avoid M6 output - preload is also disabled when M6 is disabled
   preloadTool: false, // preloads next tool on tool change if any
   showSequenceNumbers: true, // show sequence numbers
