@@ -46,6 +46,7 @@ properties = {
   separateWordsWithSpace: true, // specifies that the words should be separated with a white space
   useRadius: true, // specifies that arcs should be output using the radius (R word) instead of the I, J, and K words.
   dwellInSeconds: true, // specifies the unit for dwelling: true:seconds and false:milliseconds.
+  longhandTapping: true, // use longhand tapping cycles (RH only)
   coolantOffBeforeToolChange: true // turn off coolant before a section's tool change
 };
 
@@ -609,11 +610,96 @@ function getCommonCycle(x, y, z, r) {
     "R" + xyzFormat.format(r)];
 }
 
+// Longhand Tapping cycle based on the recommended cycle for the
+// Tension Compression Taping Head in TD10077: CNC Tapping Guidelines
+//
+// Comments below are the sample lines from the above document
+function doLonghandTapping(x, y, z, feed, dwell) {
+    var debug = true;
+
+    // N20 M3 S400 (Spindle on CW)
+    if (isFirstCyclePoint()) {
+        if (debug) writeComment("Spindle On CW");
+        writeBlock(mFormat.format(3), sOutput.format(tool.spindleRPM));
+    }
+
+    // N30 G0 X2 Y2 Z.1 (Rapid to Above 1st Hole)
+    if (debug) writeComment("Rapid to Above Hole");
+    writeBlock(gMotionModal.format(0),
+               xOutput.format(x),
+               yOutput.format(y),
+               zOutput.format(cycle.retract));
+
+    // N40 G1 Z-.5 F20 (Begin Tapping 1st Hole)
+    if (debug) writeComment("Begin Tapping Hole");
+    writeBlock(gMotionModal.format(1),
+               xOutput.format(x),
+               yOutput.format(y),
+               zOutput.format(z),
+               feedOutput.format(feed));
+
+    // N50 M4 S400 (Reverse Spindle Direction)
+    if (debug) writeComment("Reverse Spindle Direction");
+    writeBlock(mFormat.format(4), sOutput.format(tool.spindleRPM));
+
+    // N60 G4 P.5 (Dwell, 0.5 Second)
+    if (debug) writeComment("Dwell");
+    onDwell(dwell);
+
+    // N70 Z.1 F20 (Retract)
+    if (debug) writeComment("retract");
+    writeBlock(gMotionModal.format(1), zOutput.format(cycle.retract), feedOutput.format(feed));
+    writeBlock(gMotionModal.format(0), zOutput.format(cycle.clearance));
+
+    // N80 M3 S400 (spindle on CW)
+    if (debug) writeComment("Spindle On CW");
+    writeBlock(mFormat.format(3), sOutput.format(tool.spindleRPM));
+
+    // N90 G4 P.5 (Dwell, 0.5 Second)
+    if (debug) writeComment("Dwell");
+    onDwell(dwell);
+}
+
+function doG84Tapping(x, y, z, feed, dwell) {
+    writeBlock(mFormat.format(29), sOutput.format(tool.spindleRPM));
+    writeBlock(
+        gRetractModal.format(98), gAbsIncModal.format(90), gCycleModal.format(84),
+        getCommonCycle(x, y, z, cycle.retract),
+        feedOutput.format(feed)
+        );
+}
+
+function doTapping(x, y, z, feed, dwell) {
+    if (!feed) {
+        feed = tool.getTappingFeedrate();
+    }
+
+    if (properties.longhandTapping) {
+        doLonghandTapping(x, y, z, feed, dwell);
+    } else {
+        doG84Tapping(x, y, z, feed, dwell);
+    }
+}
+
 function onCyclePoint(x, y, z) {
-  if (isFirstCyclePoint()) {
-    repositionToCycleClearance(cycle, x, y, z);
-    
-    // return to initial Z which is clearance plane and set absolute mode
+  var forceCycle = false;
+  switch (cycleType) {
+  case "tapping":
+  case "right-tapping":
+      forceCycle = properties.longhandTapping;
+      if (forceCycle && !isFirstCyclePoint()) {
+          writeBlock(gCycleModal.format(80));
+          gMotionModal.reset();
+      }
+
+      break;
+  }
+
+  if (forceCycle || isFirstCyclePoint()) {
+    if (isFirstCyclePoint()) {
+        // return to initial Z which is clearance plane and set absolute mode
+        repositionToCycleClearance(cycle, x, y, z);
+    }
 
     var F = cycle.feedrate;
     var P = (cycle.dwell == 0) ? 0 : cycle.dwell; // in seconds
@@ -672,30 +758,14 @@ function onCyclePoint(x, y, z) {
       if (tool.type == TOOL_TAP_LEFT_HAND) {
         expandCyclePoint(x, y, z);
       } else {
-        if (!F) {
-          F = tool.getTappingFeedrate();
-        }
-        writeBlock(mFormat.format(29), sOutput.format(tool.spindleRPM));
-        writeBlock(
-          gRetractModal.format(98), gAbsIncModal.format(90), gCycleModal.format(84),
-          getCommonCycle(x, y, z, cycle.retract),
-          feedOutput.format(F)
-        );
+          doTapping(x, y, z, F, P);
       }
       break;
     case "left-tapping":
       expandCyclePoint(x, y, z);
       break;
     case "right-tapping":
-      if (!F) {
-        F = tool.getTappingFeedrate();
-      }
-      writeBlock(mFormat.format(29), sOutput.format(tool.spindleRPM));
-      writeBlock(
-        gRetractModal.format(98), gAbsIncModal.format(90), gCycleModal.format(84),
-        getCommonCycle(x, y, z, cycle.retract),
-        feedOutput.format(F)
-      );
+      doTapping(x, y, z, F, P);
       break;
     case "fine-boring":
       writeBlock(
