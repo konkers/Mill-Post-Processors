@@ -45,7 +45,8 @@ properties = {
   optionalStop: false, // optional stop
   separateWordsWithSpace: true, // specifies that the words should be separated with a white space
   useRadius: true, // specifies that arcs should be output using the radius (R word) instead of the I, J, and K words.
-  dwellInSeconds: true // specifies the unit for dwelling: true:seconds and false:milliseconds.
+  dwellInSeconds: true, // specifies the unit for dwelling: true:seconds and false:milliseconds.
+  coolantOffBeforeToolChange: true // turn off coolant before a section's tool change
 };
 
 
@@ -400,7 +401,9 @@ function onSection() {
     forceWorkPlane();
     
     // onCommand(COMMAND_STOP_SPINDLE);
-    // onCommand(COMMAND_COOLANT_OFF);
+    if (properties.coolantOffBeforeToolChange) {
+        onCommand(COMMAND_COOLANT_OFF);
+    }
   
     if (!isFirstSection() && properties.optionalStop) {
       onCommand(COMMAND_OPTIONAL_STOP);
