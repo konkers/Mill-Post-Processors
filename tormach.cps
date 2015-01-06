@@ -47,7 +47,8 @@ properties = {
   useRadius: true, // specifies that arcs should be output using the radius (R word) instead of the I, J, and K words.
   dwellInSeconds: true, // specifies the unit for dwelling: true:seconds and false:milliseconds.
   longhandTapping: true, // use longhand tapping cycles (RH only)
-  coolantOffBeforeToolChange: true // turn off coolant before a section's tool change
+  coolantOffBeforeToolChange: true, // turn off coolant before a section's tool change
+  stopSpindleBeforeToolChange: true // stop spindle section's tool change
 };
 
 
@@ -400,12 +401,16 @@ function onSection() {
 
   if (insertToolCall) {
     forceWorkPlane();
-    
-    // onCommand(COMMAND_STOP_SPINDLE);
+
     if (properties.coolantOffBeforeToolChange) {
         onCommand(COMMAND_COOLANT_OFF);
     }
-  
+
+    if (properties.stopSpindleBeforeToolChange) {
+        onCommand(COMMAND_STOP_SPINDLE);
+    }
+
+
     if (!isFirstSection() && properties.optionalStop) {
       onCommand(COMMAND_OPTIONAL_STOP);
     }
