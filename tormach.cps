@@ -630,18 +630,11 @@ function doLonghandTapping(x, y, z, feed, dwell) {
 
     // N30 G0 X2 Y2 Z.1 (Rapid to Above 1st Hole)
     if (debug) writeComment("Rapid to Above Hole");
-    writeBlock(gMotionModal.format(0),
-               xOutput.format(x),
-               yOutput.format(y),
-               zOutput.format(cycle.retract));
+    onExpandedRapid(x, y, cycle.retract);
 
     // N40 G1 Z-.5 F20 (Begin Tapping 1st Hole)
     if (debug) writeComment("Begin Tapping Hole");
-    writeBlock(gMotionModal.format(1),
-               xOutput.format(x),
-               yOutput.format(y),
-               zOutput.format(z),
-               feedOutput.format(feed));
+    onExpandedLinear(x, y, z, feed);
 
     // N50 M4 S400 (Reverse Spindle Direction)
     if (debug) writeComment("Reverse Spindle Direction");
@@ -653,8 +646,8 @@ function doLonghandTapping(x, y, z, feed, dwell) {
 
     // N70 Z.1 F20 (Retract)
     if (debug) writeComment("retract");
-    writeBlock(gMotionModal.format(1), zOutput.format(cycle.retract), feedOutput.format(feed));
-    writeBlock(gMotionModal.format(0), zOutput.format(cycle.clearance));
+    onExpandedLinear(x, y, cycle.retract, feed);
+    onExpandedRapid(x, y, cycle.clearance);
 
     // N80 M3 S400 (spindle on CW)
     if (debug) writeComment("Spindle On CW");
