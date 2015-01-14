@@ -54,7 +54,7 @@ properties = {
 
 
 
-var permittedCommentChars = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,=_-";
+var permittedCommentChars = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,=_-/\"'";
 
 var mapCoolantTable = new Table(
   [9, 8, 7],
