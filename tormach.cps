@@ -48,7 +48,8 @@ properties = {
   dwellInSeconds: true, // specifies the unit for dwelling: true:seconds and false:milliseconds.
   longhandTapping: true, // use longhand tapping cycles (RH only)
   coolantOffBeforeToolChange: true, // turn off coolant before a section's tool change
-  stopSpindleBeforeToolChange: true // stop spindle section's tool change
+  stopSpindleBeforeToolChange: true, // stop spindle section's tool change
+  untestedHasATC: false // UNTESTED Tormach Automatic Tool Changer supprot
 };
 
 
@@ -438,8 +439,10 @@ function onSection() {
       return;
     }
 
-    writeBlock(mFormat.format(998));
-    if (properties.useM6) {
+    if (!properties.untestedHasATC) {
+      writeBlock(mFormat.format(998));
+    }
+    if (properties.useM6 || properties.untestedHasATC) {
       writeBlock("T" + toolFormat.format(tool.number),
 	  gFormat.format(43),
 	  hFormat.format(lengthOffset),
