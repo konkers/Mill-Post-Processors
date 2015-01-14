@@ -379,9 +379,21 @@ function onSection() {
     (getPreviousSection().workOffset != currentSection.workOffset); // work offset changes
   var newWorkPlane = isFirstSection() ||
     !isSameDirection(getPreviousSection().getGlobalFinalToolAxis(), currentSection.getGlobalInitialToolAxis());
+
+  var coollantOff = false;
+  var spindleStopped = false;
+
   if (insertToolCall || newWorkOffset || newWorkPlane) {
-    
     if (properties.useG28) {
+      if (!coolantOff && properties.coolantOffBeforeToolChange) {
+        onCommand(COMMAND_COOLANT_OFF);
+        coolantOff = true;
+      }
+
+      if (!spindleStopped && properties.stopSpindleBeforeToolChange) {
+        onCommand(COMMAND_STOP_SPINDLE);
+        spindleStopped = true;
+      }
       // retract to safe plane
       retracted = true;
       writeBlock(gFormat.format(28), gAbsIncModal.format(91), "Z" + xyzFormat.format(0)); // retract
@@ -402,14 +414,15 @@ function onSection() {
   if (insertToolCall) {
     forceWorkPlane();
 
-    if (properties.coolantOffBeforeToolChange) {
+    if (!coolantOff && properties.coolantOffBeforeToolChange) {
         onCommand(COMMAND_COOLANT_OFF);
+        coolantOff = true;
     }
 
-    if (properties.stopSpindleBeforeToolChange) {
+    if (!spindleStopped && properties.stopSpindleBeforeToolChange) {
         onCommand(COMMAND_STOP_SPINDLE);
+        spindleStopped = true;
     }
-
 
     if (!isFirstSection() && properties.optionalStop) {
       onCommand(COMMAND_OPTIONAL_STOP);
