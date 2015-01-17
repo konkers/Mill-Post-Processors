@@ -381,7 +381,7 @@ function onSection() {
   var newWorkPlane = isFirstSection() ||
     !isSameDirection(getPreviousSection().getGlobalFinalToolAxis(), currentSection.getGlobalInitialToolAxis());
 
-  var coollantOff = false;
+  var coolantOff = false;
   var spindleStopped = false;
 
   if (insertToolCall || newWorkOffset || newWorkPlane) {
